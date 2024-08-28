@@ -90,9 +90,16 @@ def upgrade_to_electra(pre: deneb.BeaconState) -> BeaconState:
         withdrawals_root=pre.latest_execution_payload_header.withdrawals_root,
         blob_gas_used=pre.latest_execution_payload_header.blob_gas_used,
         excess_blob_gas=pre.latest_execution_payload_header.excess_blob_gas,
-        deposit_receipts_root=Root(),  # [New in Electra:EIP6110]
-        exits_root=Root(),  # [New in Electra:EIP7002],
+        deposit_requests_root=Root(),  # [New in Electra:EIP6110]
+        withdrawal_requests_root=Root(),  # [New in Electra:EIP7002]
+        consolidation_requests_root=Root(),  # [New in Electra:EIP7251]
     )
+
+    exit_epochs = [v.exit_epoch for v in pre.validators if v.exit_epoch != FAR_FUTURE_EPOCH]
+    if not exit_epochs:
+        exit_epochs = [get_current_epoch(pre)]
+    earliest_exit_epoch = max(exit_epochs) + 1
+
     post = BeaconState(
         # Versioning
         genesis_time=pre.genesis_time,
@@ -139,9 +146,39 @@ def upgrade_to_electra(pre: deneb.BeaconState) -> BeaconState:
         next_withdrawal_validator_index=pre.next_withdrawal_validator_index,
         # Deep history valid from Capella onwards
         historical_summaries=pre.historical_summaries,
-        # EIP6110
-        deposit_receipts_start_index=UNSET_DEPOSIT_RECEIPTS_START_INDEX,  # [New in Electra:EIP6110]
+        # [New in Electra:EIP6110]
+        deposit_requests_start_index=UNSET_DEPOSIT_REQUESTS_START_INDEX,
+        # [New in Electra:EIP7251]
+        deposit_balance_to_consume=0,
+        exit_balance_to_consume=0,
+        earliest_exit_epoch=earliest_exit_epoch,
+        consolidation_balance_to_consume=0,
+        earliest_consolidation_epoch=compute_activation_exit_epoch(get_current_epoch(pre)),
+        pending_balance_deposits=[],
+        pending_partial_withdrawals=[],
+        pending_consolidations=[],
     )
+
+    post.exit_balance_to_consume = get_activation_exit_churn_limit(post)
+    post.consolidation_balance_to_consume = get_consolidation_churn_limit(post)
+
+    # [New in Electra:EIP7251]
+    # add validators that are not yet active to pending balance deposits
+    pre_activation = sorted([
+        index for index, validator in enumerate(post.validators)
+        if validator.activation_epoch == FAR_FUTURE_EPOCH
+    ], key=lambda index: (
+        post.validators[index].activation_eligibility_epoch,
+        index
+    ))
+
+    for index in pre_activation:
+        queue_entire_balance_and_reset_validator(post, ValidatorIndex(index))
+
+    # Ensure early adopters of compounding credentials go through the activation churn
+    for index, validator in enumerate(post.validators):
+        if has_compounding_withdrawal_credential(validator):
+            queue_excess_active_balance(post, ValidatorIndex(index))
 
     return post
 ```

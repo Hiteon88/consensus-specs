@@ -44,20 +44,13 @@ if __name__ == "__main__":
     deneb_mods = combine_mods(_new_deneb_mods, capella_mods)
 
     _new_electra_mods = {key: 'eth2spec.test.electra.block_processing.test_process_' + key for key in [
-        'deposit_receipt',
-        'execution_layer_exit',
+        'attestation',
+        'consolidation_request',
+        'deposit_request',
+        'voluntary_exit',
+        'withdrawal_request',
     ]}
     electra_mods = combine_mods(_new_electra_mods, deneb_mods)
-
-    # TODO Custody Game testgen is disabled for now
-    # _new_custody_game_mods = {key: 'eth2spec.test.custody_game.block_processing.test_process_' + key for key in [
-    #     'attestation',
-    #     'chunk_challenge',
-    #     'custody_key_reveal',
-    #     'custody_slashing',
-    #     'early_derived_secret_reveal',
-    # ]}
-    # custody_game_mods = combine_mods(_new_custody_game_mods, phase0_mods)
 
     all_mods = {
         PHASE0: phase_0_mods,

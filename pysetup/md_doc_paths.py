@@ -9,7 +9,8 @@ from .constants import (
     ELECTRA,
     WHISK,
     EIP7594,
-    EIP7251,
+    EIP6800,
+    EIP7732,
 )
 
 
@@ -21,8 +22,9 @@ PREVIOUS_FORK_OF = {
     DENEB: CAPELLA,
     ELECTRA: DENEB,
     WHISK: CAPELLA,
-    EIP7251: DENEB,
     EIP7594: DENEB,
+    EIP6800: DENEB,
+    EIP7732: ELECTRA,
 }
 
 ALL_FORKS = list(PREVIOUS_FORK_OF.keys())

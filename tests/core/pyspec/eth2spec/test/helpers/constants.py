@@ -19,15 +19,15 @@ CUSTODY_GAME = SpecForkName('custody_game')
 DAS = SpecForkName('das')
 ELECTRA = SpecForkName('electra')
 WHISK = SpecForkName('whisk')
-EIP7251 = SpecForkName('eip7251')
 EIP7594 = SpecForkName('eip7594')
+EIP7732 = SpecForkName('eip7732')
 
 #
 # SpecFork settings
 #
 
 # The forks that are deployed on Mainnet
-MAINNET_FORKS = (PHASE0, ALTAIR, BELLATRIX, CAPELLA)
+MAINNET_FORKS = (PHASE0, ALTAIR, BELLATRIX, CAPELLA, DENEB)
 LATEST_FORK = MAINNET_FORKS[-1]
 # The forks that pytest can run with.
 # Note: when adding a new fork here, all tests from previous forks with decorator `with_X_and_later`
@@ -35,18 +35,16 @@ LATEST_FORK = MAINNET_FORKS[-1]
 ALL_PHASES = (
     # Formal forks
     *MAINNET_FORKS,
-    DENEB,
     ELECTRA,
     # Experimental patches
-    EIP7251,
     EIP7594,
 )
 # The forks that have light client specs
-LIGHT_CLIENT_TESTING_FORKS = (*[item for item in MAINNET_FORKS if item != PHASE0], DENEB)
+LIGHT_CLIENT_TESTING_FORKS = (*[item for item in MAINNET_FORKS if item != PHASE0], ELECTRA)
 # The forks that output to the test vectors.
-TESTGEN_FORKS = (*MAINNET_FORKS, DENEB, ELECTRA, WHISK)
+TESTGEN_FORKS = (*MAINNET_FORKS, ELECTRA, EIP7594, WHISK)
 # Forks allowed in the test runner `--fork` flag, to fail fast in case of typos
-ALLOWED_TEST_RUNNER_FORKS = (*ALL_PHASES, WHISK)
+ALLOWED_TEST_RUNNER_FORKS = (*ALL_PHASES, WHISK, EIP7732)
 
 # NOTE: the same definition as in `pysetup/md_doc_paths.py`
 PREVIOUS_FORK_OF = {
@@ -59,8 +57,8 @@ PREVIOUS_FORK_OF = {
     ELECTRA: DENEB,
     # Experimental patches
     WHISK: CAPELLA,
-    EIP7251: DENEB,
     EIP7594: DENEB,
+    EIP7732: ELECTRA,
 }
 
 # For fork transition tests
